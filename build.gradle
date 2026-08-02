@@ -9,7 +9,7 @@ plugins {
 }
 
 setGroup("net.elytrium")
-setVersion("1.1.19")
+setVersion("2.0.1")
 
 compileJava {
     getOptions().setEncoding("UTF-8")
@@ -21,6 +21,7 @@ java {
 }
 
 repositories {
+    mavenLocal() 
     mavenCentral()
 
     maven {
@@ -46,7 +47,6 @@ dependencies {
     compileOnly("org.apache.logging.log4j:log4j-api:$log4jVersion")
     compileOnly("org.apache.logging.log4j:log4j-core:$log4jVersion")
 
-    implementation("org.bstats:bstats-velocity:$bstatsVersion")
     implementation("net.elytrium:pcap:$pcapVersion")
 
     compileOnly("com.github.spotbugs:spotbugs-annotations:$spotbugsVersion")
@@ -55,7 +55,6 @@ dependencies {
 shadowJar {
     getArchiveClassifier().set("")
 
-    relocate("org.bstats", "net.elytrium.limbofilter.thirdparty.org.bstats")
     relocate("net.elytrium.commons.velocity", "net.elytrium.limboapi.thirdparty.commons.velocity")
     relocate("net.elytrium.commons.kyori", "net.elytrium.limboapi.thirdparty.commons.kyori")
     relocate("net.elytrium.commons.config", "net.elytrium.limboapi.thirdparty.commons.config")

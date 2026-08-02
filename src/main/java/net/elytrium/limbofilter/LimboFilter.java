@@ -71,9 +71,6 @@ import net.kyori.adventure.text.serializer.ComponentSerializer;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.config.Configurator;
-import org.bstats.charts.SimplePie;
-import org.bstats.charts.SingleLineChart;
-import org.bstats.velocity.Metrics;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.slf4j.Logger;
 
@@ -100,7 +97,6 @@ public class LimboFilter {
 
   private final Path dataDirectory;
   private final File configFile;
-  private final Metrics.Factory metricsFactory;
   private final ProxyServer server;
   private final Statistics statistics;
   private final LimboFactory limboFactory;
@@ -118,11 +114,10 @@ public class LimboFilter {
   private TcpListener tcpListener;
 
   @Inject
-  public LimboFilter(Logger logger, ProxyServer server, Metrics.Factory metricsFactory, @DataDirectory Path dataDirectory) {
+  public LimboFilter(Logger logger, ProxyServer server, @DataDirectory Path dataDirectory) {
     setLogger(logger);
 
     this.server = server;
-    this.metricsFactory = metricsFactory;
     this.dataDirectory = dataDirectory;
     this.configFile = this.dataDirectory.resolve("config.yml").toFile();
     this.statistics = new Statistics();
@@ -130,6 +125,8 @@ public class LimboFilter {
     this.limboFactory = (LimboFactory) this.server.getPluginManager().getPlugin("limboapi").flatMap(PluginContainer::getInstance).orElseThrow();
     this.packetFactory = this.limboFactory.getPacketFactory();
     this.initialLogLevel = LogManager.getRootLogger().getLevel();
+
+    LOGGER.info("LimboFilter initialized.");
   }
 
   @Subscribe
@@ -137,19 +134,6 @@ public class LimboFilter {
     Settings.IMP.setLogger(LOGGER);
 
     this.reload();
-
-    Metrics metrics = this.metricsFactory.make(this, 13699);
-    Settings.MAIN main = Settings.IMP.MAIN;
-    metrics.addCustomChart(new SimplePie("filter_type", () -> String.valueOf(main.CHECK_STATE)));
-    metrics.addCustomChart(new SimplePie("load_world", () -> String.valueOf(main.LOAD_WORLD)));
-    metrics.addCustomChart(new SimplePie("check_brand", () -> String.valueOf(main.CHECK_CLIENT_BRAND)));
-    metrics.addCustomChart(new SimplePie("check_settings", () -> String.valueOf(main.CHECK_CLIENT_SETTINGS)));
-    metrics.addCustomChart(
-        new SimplePie("has_backplate",
-            () -> String.valueOf(!main.CAPTCHA_GENERATOR.BACKPLATE_PATHS.isEmpty() && !main.CAPTCHA_GENERATOR.BACKPLATE_PATHS.get(0).isEmpty()))
-    );
-    metrics.addCustomChart(new SingleLineChart("pings", () -> Math.toIntExact(this.statistics.getPings()))); // Total pings
-    metrics.addCustomChart(new SingleLineChart("connections", () -> Math.toIntExact(this.statistics.getConnections())));
 
     if (!UpdatesChecker.checkVersionByURL("https://raw.githubusercontent.com/Elytrium/LimboFilter/master/VERSION", Settings.IMP.VERSION)) {
       LOGGER.error("****************************************");
@@ -161,6 +145,8 @@ public class LimboFilter {
     // Not letting VelocityConsole to inherit root logger since we can disable it
     org.apache.logging.log4j.Logger consoleLogger = LogManager.getLogger(VelocityConsole.class);
     Configurator.setLevel(consoleLogger.getName(), consoleLogger.getLevel());
+
+    LOGGER.info("LimboFilter is operational.");
   }
 
   public void reload() {
