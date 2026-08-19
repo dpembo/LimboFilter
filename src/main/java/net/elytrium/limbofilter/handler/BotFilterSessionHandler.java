@@ -109,6 +109,12 @@ public class BotFilterSessionHandler implements LimboSessionHandler {
     this.server = server;
     this.player = player;
 
+    // Reject clients below Minecraft 26.2 before writing any version-specific packets
+    if (this.version.compareTo(ProtocolVersion.MINECRAFT_26_2) < 0) {
+      this.disconnect(this.plugin.getPackets().getUnsupportedVersion(), true);
+      return;
+    }
+
     this.joinTime = System.currentTimeMillis();
     if (this.state == CheckState.ONLY_CAPTCHA) {
       this.changeStateToCaptcha();
@@ -297,7 +303,9 @@ public class BotFilterSessionHandler implements LimboSessionHandler {
 
   @Override
   public void onDisconnect() {
-    this.filterMainTask.cancel(true);
+    if (this.filterMainTask != null) {
+      this.filterMainTask.cancel(true);
+    }
 
     TcpListener tcpListener = this.plugin.getTcpListener();
     if (tcpListener != null) {

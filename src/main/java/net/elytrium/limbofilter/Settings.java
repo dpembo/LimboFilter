@@ -443,6 +443,7 @@ public class Settings extends YamlConfig {
       public String CAPTCHA_FAILED_KICK = "{PRFX}{NL}&cYou've mistaken in captcha check.{NL}&6Please, rejoin the server.";
       public String FALLING_CHECK_FAILED_KICK = "{PRFX}{NL}&cFalling Check was failed.{NL}&6Please, rejoin the server.";
       public String TIMES_UP = "{PRFX}{NL}&cYou have exceeded the maximum Bot-Filter check time.{NL}&6Please, rejoin the server.";
+      public String UNSUPPORTED_VERSION_KICK = "{PRFX}{NL}&cYour Minecraft version is outdated.{NL}&6Please update to 26.2 or newer to join this server.";
 
       public String STATS_FORMAT = "&c&lTotal Blocked: &6&l{0} &c&l| Connections: &6&l{1}s &c&l| Pings: &6&l{2}s &c&l| Total Connections: &6&l{3} &c&l| L7 Ping: &6&l{4} &c&l| L4 Ping: &6&l{5}";
       public String STATS_ENABLED = "{PRFX} &aNow you may see statistics in your action bar.";
