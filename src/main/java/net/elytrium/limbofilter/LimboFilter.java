@@ -112,6 +112,8 @@ public class LimboFilter {
   private CachedPackets packets;
   private boolean logsDisabled;
   private TcpListener tcpListener;
+  private ProtocolVersion minVersion;
+  private ProtocolVersion maxVersion;
 
   @Inject
   public LimboFilter(Logger logger, ProxyServer server, @DataDirectory Path dataDirectory) {
@@ -151,6 +153,20 @@ public class LimboFilter {
 
   public void reload() {
     Settings.IMP.reload(this.configFile, Settings.IMP.PREFIX);
+
+    this.minVersion = resolveProtocolVersion(Settings.IMP.MAIN.MIN_VERSION, null);
+    this.maxVersion = resolveProtocolVersion(Settings.IMP.MAIN.MAX_VERSION, null);
+    if (this.minVersion != null && this.maxVersion != null
+        && this.minVersion.compareTo(this.maxVersion) > 0) {
+      LOGGER.warn("min-version ({}) is newer than max-version ({}). Swapping them.",
+          Settings.IMP.MAIN.MIN_VERSION, Settings.IMP.MAIN.MAX_VERSION);
+      ProtocolVersion tmp = this.minVersion;
+      this.minVersion = this.maxVersion;
+      this.maxVersion = tmp;
+    }
+    LOGGER.info("Allowed client versions: {} .. {}",
+        this.minVersion != null ? this.minVersion.getVersionIntroducedIn() : "any",
+        this.maxVersion != null ? this.maxVersion.getMostRecentSupportedVersion() : "any");
 
     ComponentSerializer<Component, Component, String> serializer = Settings.IMP.SERIALIZER.getSerializer();
     if (serializer == null) {
@@ -491,6 +507,14 @@ public class LimboFilter {
     return this.packetFactory;
   }
 
+  public ProtocolVersion getMinVersion() {
+    return this.minVersion;
+  }
+
+  public ProtocolVersion getMaxVersion() {
+    return this.maxVersion;
+  }
+
   public CachedPackets getPackets() {
     return this.packets;
   }
@@ -525,6 +549,68 @@ public class LimboFilter {
 
   public static Serializer getSerializer() {
     return SERIALIZER;
+  }
+
+
+  /**
+   * Resolves a config version string to a ProtocolVersion.
+   * Accepts names like "26.2", "1.21.11", "MINECRAFT_26_2", or a numeric protocol id.
+   * Returns {@code fallback} (may be null) when empty/blank/unknown.
+   */
+  private static ProtocolVersion resolveProtocolVersion(String raw, ProtocolVersion fallback) {
+    if (raw == null || raw.isBlank()) {
+      return fallback;
+    }
+
+    String key = raw.trim();
+
+    // Enum-style: MINECRAFT_26_2 or 26_2
+    String enumCandidate = key.toUpperCase().replace('.', '_');
+    if (!enumCandidate.startsWith("MINECRAFT_")) {
+      enumCandidate = "MINECRAFT_" + enumCandidate;
+    }
+    try {
+      return ProtocolVersion.valueOf(enumCandidate);
+    } catch (IllegalArgumentException ignored) {
+      // continue
+    }
+
+    // Match against known version name lists on each enum constant
+    for (ProtocolVersion version : ProtocolVersion.values()) {
+      if (version.isUnknown() || !version.isSupported()) {
+        continue;
+      }
+      if (version.name().equalsIgnoreCase(key) || version.name().equalsIgnoreCase(enumCandidate)) {
+        return version;
+      }
+      String introduced = version.getVersionIntroducedIn();
+      if (introduced != null && introduced.equalsIgnoreCase(key)) {
+        return version;
+      }
+      String recent = version.getMostRecentSupportedVersion();
+      if (recent != null && recent.equalsIgnoreCase(key)) {
+        return version;
+      }
+      for (String name : version.getVersionsSupportedBy()) {
+        if (name.equalsIgnoreCase(key)) {
+          return version;
+        }
+      }
+    }
+
+    // Numeric protocol id
+    try {
+      int protocol = Integer.parseInt(key);
+      ProtocolVersion byId = ProtocolVersion.getProtocolVersion(protocol);
+      if (byId != null && !byId.isUnknown()) {
+        return byId;
+      }
+    } catch (NumberFormatException ignored) {
+      // continue
+    }
+
+    LOGGER.warn("Unknown protocol version '{}', version check for this bound will be disabled.", key);
+    return fallback;
   }
 
   private static class CachedUser {

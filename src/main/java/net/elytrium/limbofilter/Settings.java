@@ -58,6 +58,20 @@ public class Settings extends YamlConfig {
     public boolean CHECK_CLIENT_BRAND = true;
     @Comment("If a player's Minecraft client brand (e.g., fabric or forge) is set here, then that player will be kicked.")
     public List<String> BLOCKED_CLIENT_BRANDS = List.of("brand1", "brand2");
+    @Comment({
+        "Minimum Minecraft client version allowed through the filter (inclusive).",
+        "Clients below this version are kicked with unsupported-version-kick.",
+        "Accepts version names such as \"26.2\", \"1.21.11\", \"1.20.4\", or enum names like \"MINECRAFT_26_2\".",
+        "Leave empty to disable the minimum version check."
+    })
+    public String MIN_VERSION = "26.2";
+    @Comment({
+        "Maximum Minecraft client version allowed through the filter (inclusive).",
+        "Clients above this version are kicked with unsupported-version-new-kick.",
+        "Accepts the same formats as min-version.",
+        "Leave empty to disable the maximum version check (recommended unless you intentionally lock to one release)."
+    })
+    public String MAX_VERSION = "26.2";
     @Comment("Time in milliseconds, how frequently will the cache list with verified players be reset. Before that time, verified players can join the server without passing antibot checks.")
     public long PURGE_CACHE_MILLIS = 3600000;
     @Comment("Max attempts, which a player has to solve the captcha.")
@@ -443,7 +457,8 @@ public class Settings extends YamlConfig {
       public String CAPTCHA_FAILED_KICK = "{PRFX}{NL}&cYou've mistaken in captcha check.{NL}&6Please, rejoin the server.";
       public String FALLING_CHECK_FAILED_KICK = "{PRFX}{NL}&cFalling Check was failed.{NL}&6Please, rejoin the server.";
       public String TIMES_UP = "{PRFX}{NL}&cYou have exceeded the maximum Bot-Filter check time.{NL}&6Please, rejoin the server.";
-      public String UNSUPPORTED_VERSION_KICK = "{PRFX}{NL}&cYour Minecraft version is outdated.{NL}&6Please update to 26.2 or newer to join this server.";
+      public String UNSUPPORTED_VERSION_KICK = "{PRFX}{NL}&cYour Minecraft version is outdated.{NL}&6Please update to a supported version to join this server.";
+      public String UNSUPPORTED_VERSION_NEW_KICK = "{PRFX}{NL}&cYour Minecraft version is too new for this server.{NL}&6Please use a supported version to join.";
 
       public String STATS_FORMAT = "&c&lTotal Blocked: &6&l{0} &c&l| Connections: &6&l{1}s &c&l| Pings: &6&l{2}s &c&l| Total Connections: &6&l{3} &c&l| L7 Ping: &6&l{4} &c&l| L4 Ping: &6&l{5}";
       public String STATS_ENABLED = "{PRFX} &aNow you may see statistics in your action bar.";

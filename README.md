@@ -56,6 +56,51 @@ Attack: Motd + Join bot attack (100k joins per seconds, 1.17 Protocol)
 | Velocity                                | Online Mode                                 | 2 sec     | 70%             |
 | Velocity                                | Offline Mode                                | 2 sec     | 55%             |
 
+
+## Client version restriction (min / max)
+
+LimboFilter can kick clients outside a configured Minecraft version range **before** any filter packets are sent. This avoids protocol/`PreparedPacket` errors when the client is too old or too new for the prepared packets.
+
+### Config (`config.yml`)
+
+```yaml
+main:
+  # Inclusive minimum. Empty = no minimum check.
+  min-version: "26.2"
+  # Inclusive maximum. Empty = no maximum check.
+  max-version: "26.2"
+  strings:
+    unsupported-version-kick: "{PRFX}{NL}&cYour Minecraft version is outdated.{NL}&6Please update to a supported version to join this server."
+    unsupported-version-new-kick: "{PRFX}{NL}&cYour Minecraft version is too new for this server.{NL}&6Please use a supported version to join."
+```
+
+Accepted values for `min-version` / `max-version`:
+
+- Version names: `26.2`, `1.21.11`, `1.20.4`
+- Enum-style: `MINECRAFT_26_2`
+- Protocol numbers: e.g. `776` for 26.2
+
+After changing values, run `/lfilter reload`. Placeholders `{PRFX}` and `{NL}` are applied on reload.
+
+### Adding support for a new Minecraft version (e.g. 26.3)
+
+When Mojang releases a new version you want to allow (or lock to):
+
+1. **Upgrade Velocity** to a build that defines `ProtocolVersion.MINECRAFT_26_3` (or the new constant name).
+2. **Upgrade LimboAPI** to a release that supports the new protocol (packet codecs, registries, prepared packets).
+3. **Update LimboFilter** if needed:
+   - Bump `limboapiVersion` / `velocityVersion` in `gradle.properties`.
+   - Add any new `PacketMapping` entries in `LimboFilter.java` for custom packets (`Interact`, `SpawnEntity`, etc.) when packet IDs change.
+   - Rebuild: `./gradlew clean shadowJar`.
+4. **Config** — set the range you want, for example:
+   - Allow only 26.3: `min-version: "26.3"` and `max-version: "26.3"`
+   - Allow 26.2–26.3: `min-version: "26.2"` and `max-version: "26.3"`
+   - Allow 26.3 and newer: `min-version: "26.3"` and `max-version: ""`
+5. Deploy the new jars, restart (or reload where safe), then `/lfilter reload`.
+6. Optionally update `unsupported-version-kick` / `unsupported-version-new-kick` so players see the correct version guidance.
+
+Until Velocity and LimboAPI support the new version, do **not** raise `max-version` above what the stack can actually speak, or clients on the new version will fail later with protocol errors.
+
 ## Donation
 
 Your donations are really appreciated. Donations wallets/links/cards:

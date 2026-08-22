@@ -109,9 +109,15 @@ public class BotFilterSessionHandler implements LimboSessionHandler {
     this.server = server;
     this.player = player;
 
-    // Reject clients below Minecraft 26.2 before writing any version-specific packets
-    if (this.version.compareTo(ProtocolVersion.MINECRAFT_26_2) < 0) {
+    // Reject clients outside the configured min/max version range before writing packets
+    ProtocolVersion minVersion = this.plugin.getMinVersion();
+    ProtocolVersion maxVersion = this.plugin.getMaxVersion();
+    if (minVersion != null && this.version.compareTo(minVersion) < 0) {
       this.disconnect(this.plugin.getPackets().getUnsupportedVersion(), true);
+      return;
+    }
+    if (maxVersion != null && this.version.compareTo(maxVersion) > 0) {
+      this.disconnect(this.plugin.getPackets().getUnsupportedVersionNew(), true);
       return;
     }
 

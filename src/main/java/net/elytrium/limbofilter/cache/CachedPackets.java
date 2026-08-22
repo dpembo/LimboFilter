@@ -66,6 +66,7 @@ public class CachedPackets {
   private PreparedPacket captchaNotReadyYet;
   private PreparedPacket framedCaptchaPackets;
   private PreparedPacket unsupportedVersion;
+  private PreparedPacket unsupportedVersionNew;
 
   public void createPackets(LimboFactory limboFactory, PacketFactory packetFactory) {
     Settings.MAIN.STRINGS strings = Settings.IMP.MAIN.STRINGS;
@@ -95,6 +96,7 @@ public class CachedPackets {
     this.kickClientCheckBrand = this.createDisconnectPacket(limboFactory, strings.CLIENT_BRAND_KICK);
     this.kickProxyCheck = this.createDisconnectPacket(limboFactory, strings.PROXY_CHECK_KICK);
     this.unsupportedVersion = this.createDisconnectPacket(limboFactory, strings.UNSUPPORTED_VERSION_KICK);
+    this.unsupportedVersionNew = this.createDisconnectPacket(limboFactory, strings.UNSUPPORTED_VERSION_NEW_KICK);
 
     this.successfulBotFilterChat = limboFactory.createPreparedPacket();
     this.createChatPacket(this.successfulBotFilterChat, strings.SUCCESSFUL_CRACKED);
@@ -226,6 +228,7 @@ public class CachedPackets {
     this.singleDispose(this.kickClientCheckSettings);
     this.singleDispose(this.kickProxyCheck);
     this.singleDispose(this.unsupportedVersion);
+    this.singleDispose(this.unsupportedVersionNew);
     this.singleDispose(this.successfulBotFilterChat);
     this.singleDispose(this.successfulBotFilterDisconnect);
     this.singleDispose(this.fallingCheckChunkUnload);
@@ -422,6 +425,10 @@ public class CachedPackets {
 
   public PreparedPacket getUnsupportedVersion() {
     return this.unsupportedVersion;
+  }
+
+  public PreparedPacket getUnsupportedVersionNew() {
+    return this.unsupportedVersionNew;
   }
 
   public PreparedPacket getSuccessfulBotFilterChat() {
